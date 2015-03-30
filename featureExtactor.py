@@ -3,8 +3,8 @@ import numpy as np
 
 def SIFT ( img ):
 	sift = cv2.SIFT()
-	kp = sift.detect( img, None )
-	print kp[0]
+	kp, des = sift.detectAndCompute( img, None )
+	print des[0]
 
 	img = cv2.drawKeypoints( img, kp, flags = cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS )
 
