@@ -32,10 +32,13 @@ class featurePooling():
 					self.descriptor_pool = np.vstack( ( self.descriptor_pool, des ) )
 
 	def clusterSIFTDescriptors( self ):
-		
+		kmeans = KMeans( n_clusters = 100 )
+		kmeans.fit( self.descriptor_pool )
+		print kmeans.labels
 
 if __name__ == '__main__' :
 	path = 'data/training'
 	f = featurePooling( path )
 	f.getSIFTDescriptors()
-	print f.descriptor_pool
+	f.clusterSIFTDescriptors()
+	# print f.descriptor_pool
