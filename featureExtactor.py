@@ -1,22 +1,35 @@
 import cv2
 import numpy as np
 
-def SIFT ( img ):
-	sift = cv2.SIFT()
-	kp, des = sift.detectAndCompute( img, None )
-	print des[0]
+class featureExtractor():
 
-	img = cv2.drawKeypoints( img, kp, flags = cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS )
+	def __init__( self, path ):
+		self.path = path
+		self.img = cv2.imread( self.path )
 
-	cv2.imwrite( 'data/sample/sample_sift_keypoints.png', img)
+	def preprocess ( self ):
+		self.img = cv2.cvtColor( self.img, cv2.COLOR_BGR2GRAY )
 
-def getBrightness ( img ):
-	avg = np.average( img )
-	return avg
+	def SIFT ( self ):
+		sift = cv2.SIFT()
+		kp, des = sift.detectAndCompute( self.img, None )
+		return des
+
+		# out_img = cv2.drawKeypoints( self.img, kp, flags = cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS )
+
+		# cv2.imwrite( 'data/sample/sample_sift_keypoints.png', out_img)
+
+	def brightness ( self ):
+		avg = np.average( self.img )
+		return avg
+
+	def texture ( self ):
+		return 0
 
 if __name__ == "__main__":
 
-	img = cv2.imread('data/sample/sample.png')
-	gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-	print getBrightness( gray )
-	SIFT( gray )
+	sample_path = 'data/sample/sample.png'
+	f = featureExtractor( sample_path )
+	f.preprocess()
+	print f.brightness()
+	print f.SIFT()
