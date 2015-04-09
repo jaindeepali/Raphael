@@ -13,11 +13,11 @@ class featureExtractor():
 	def SIFT ( self ):
 		sift = cv2.SIFT()
 		kp, des = sift.detectAndCompute( self.img, None )
-		return des
 
 		# out_img = cv2.drawKeypoints( self.img, kp, flags = cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS )
-
 		# cv2.imwrite( 'data/sample/sample_sift_keypoints.png', out_img)
+		
+		return des
 
 	def brightness ( self ):
 		avg = np.average( self.img )
