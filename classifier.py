@@ -5,6 +5,9 @@ from datetime import datetime
 from scipy.cluster.vq import *
 from featureExtractor import *
 from helper import *
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import tree
+from sklearn import svm
 
 class trainer():
 
@@ -16,6 +19,7 @@ class trainer():
 		self.training_labels = []
 		self.testing_labels = []
 		self.class_map = {}
+		self.clf = None
 
 	def get_training_image_list( self ):
 		classes = os.listdir( self.training_path )
@@ -42,8 +46,16 @@ class trainer():
 		f = featurePooling( self.training_image_list )
 		f.getFeatures()
 		features = f.features
-		print features
-		print self.training_labels
+		self.clf = svm.SVC()
+		self.clf.fit( features, self.training_labels )
+
+	def classify( self ):
+		self.get_testing_image_list()
+		f = featurePooling( self.testing_image_list )
+		f.getFeatures()
+		features = f.features
+		self.train()
+		self.testing_labels = self.clf.predict( features )
 
 
 if __name__ == '__main__' :
@@ -51,5 +63,6 @@ if __name__ == '__main__' :
 	testing_path = 'data/testing'
 	print 'Script started at', datetime.now()
 	f = trainer( training_path, testing_path )
-	f.train()
+	f.classify()
+	print f.testing_labels
 	print 'Script finished at', datetime.now()
