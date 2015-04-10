@@ -13,13 +13,20 @@ class trainer():
 		self.descriptor_pool = None
 		self.image_data = []
 		self.voc = None
+		self.features = None
+		self.labels = None
+
+	def clusterSIFTDescriptors( self, k ):
+
+		voc, variance = kmeans(self.descriptor_pool, k, 1)
+		self.voc = voc
 
 	def getFeatures( self ):
 
 		# Get features of all training images
 
 		classes = os.listdir( self.training_path )
-		cid = 1
+		cid = 0
 		for c in classes:
 			class_path = os.path.join( self.training_path, c )
 			images = os.listdir( class_path )
@@ -54,19 +61,28 @@ class trainer():
 			hist = createHistogram( img['descriptors'], self.voc, k )
 			img['SIFThistogram'] = hist
 			img['features'] = hist
-			print type( img['features'] )
-			print type( img['brightness'] )
 			img['features'] = np.append( img['features'], img['brightness'] )
 
-	def clusterSIFTDescriptors( self, k ):
+			if self.features == None:
+				self.features = img['features']
+			else:
+				self.features = np.vstack( ( self.features, img['features'] ) )
 
-		voc, variance = kmeans(self.descriptor_pool, k, 1)
-		self.voc = voc	
+			if self.labels == None:
+				self.labels = img['cid']
+			else:
+				self.labels = np.append( self.labels, img['cid'] )
+
+	def train( self ):
+		self.getFeatures()
+
 
 if __name__ == '__main__' :
 	path = 'data/training'
 	print 'Script started at', datetime.now()
 	f = trainer( path )
-	f.getFeatures()
+	f.train()
 	print 'Script finished at', datetime.now()
-	print f.image_data
+	print len(f.features), len(f.labels)
+	print f.features
+	print f.labels
