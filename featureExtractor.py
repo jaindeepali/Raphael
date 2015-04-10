@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
+from scipy.cluster.vq import *
+from helper import *
 
-class featureExtractor():
+class featureDetector():
 
 	def __init__( self, path ):
 		self.path = path
@@ -25,6 +27,57 @@ class featureExtractor():
 
 	def texture ( self ):
 		return 0
+
+class featurePooling():
+
+	def __init__( self, image_list ):
+		self.image_list = image_list
+		self.descriptor_pool = None
+		self.image_data = []
+		self.voc = None
+		self.features = None
+
+	def clusterSIFTDescriptors( self, k ):
+		voc, variance = kmeans(self.descriptor_pool, k, 1)
+		self.voc = voc
+
+	def getFeatures( self ):
+
+		# Get features of all images in self.image_list
+
+		for img_path in self.image_list:
+
+			image = {}
+			image['path'] = img_path
+
+			f = featureDetector( img_path )
+			f.preprocess()
+			des = f.SIFT()
+
+			image['descriptors'] = des
+			image['no_of_descriptors'] = len(des)
+			image['brightness'] = f.brightness()
+
+			if self.descriptor_pool == None :
+				self.descriptor_pool = des
+			else:
+				self.descriptor_pool = np.vstack( ( self.descriptor_pool, des ) )
+
+			self.image_data.append( image )
+
+		k = 100
+		self.clusterSIFTDescriptors( k )
+
+		for img in self.image_data:
+			hist = createHistogram( img['descriptors'], self.voc, k )
+			img['SIFThistogram'] = hist
+			img['features'] = hist
+			img['features'] = np.append( img['features'], img['brightness'] )
+
+			if self.features == None:
+				self.features = img['features']
+			else:
+				self.features = np.vstack( ( self.features, img['features'] ) )
 
 if __name__ == "__main__":
 
