@@ -10,11 +10,12 @@ class featureDetector():
 		self.img = cv2.imread( self.path )
 
 	def preprocess ( self ):
-		self.img = cv2.cvtColor( self.img, cv2.COLOR_BGR2GRAY )
+		self.bw_img = cv2.cvtColor( self.img, cv2.COLOR_BGR2GRAY )
+		self.HSVimg = cv2.cvtColor( self.img, cv2.COLOR_BGR2HSV )
 
 	def SIFT ( self ):
 		sift = cv2.SIFT()
-		kp, des = sift.detectAndCompute( self.img, None )
+		kp, des = sift.detectAndCompute( self.bw_img, None )
 
 		# out_img = cv2.drawKeypoints( self.img, kp, flags = cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS )
 		# cv2.imwrite( 'data/sample/sample_sift_keypoints.png', out_img)
@@ -22,11 +23,21 @@ class featureDetector():
 		return des
 
 	def brightness ( self ):
-		avg = np.average( self.img )
+		avg = np.average( self.bw_img )
 		return avg
 
 	def texture ( self ):
 		return 0
+
+	def colorHist ( self ):
+		bhist = cv2.calcHist( [self.img], [0], None, [50], [0,256] )
+		ghist = cv2.calcHist( [self.img], [1], None, [50], [0,256] )
+		rhist = cv2.calcHist( [self.img], [2], None, [50], [0,256] )
+		bhist = np.transpose( bhist )[0]
+		ghist = np.transpose( ghist )[0]
+		rhist = np.transpose( rhist )[0]
+		colorHist = np.append( bhist, [ ghist, rhist ] )
+		return colorHist
 
 class featurePooling():
 
@@ -57,6 +68,7 @@ class featurePooling():
 			image['descriptors'] = des
 			image['no_of_descriptors'] = len(des)
 			image['brightness'] = f.brightness()
+			image['colorHist'] = f.colorHist()
 
 			if self.descriptor_pool == None :
 				self.descriptor_pool = des
@@ -73,6 +85,7 @@ class featurePooling():
 			img['SIFThistogram'] = hist
 			img['features'] = hist
 			img['features'] = np.append( img['features'], img['brightness'] )
+			img['features'] = np.append( img['features'], img['colorHist'] )
 
 			if self.features == None:
 				self.features = img['features']
@@ -82,7 +95,5 @@ class featurePooling():
 if __name__ == "__main__":
 
 	sample_path = 'data/sample/sample.png'
-	f = featureExtractor( sample_path )
-	f.preprocess()
-	print f.brightness()
-	print f.SIFT()
+	f = featureDetector( sample_path )
+	print f.colorHist()
