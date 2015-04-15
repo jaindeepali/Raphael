@@ -34,7 +34,7 @@ class featureDetector():
 	def darkPixels ( self ):
 		dhist = cv2.calcHist( [self.HSVimg], [2], None, [3], [0,256] )
 		dhist = np.transpose( dhist )[0]
-		darkness = dhist[0] / ( dhist[0] + dhist[1] + dhist[1] )
+		darkness = dhist[0] / ( dhist[0] + dhist[1] + dhist[2] )
 		return darkness
 
 	def colorHist ( self ):
