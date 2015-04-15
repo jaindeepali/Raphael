@@ -10,6 +10,7 @@ class featureDetector():
 		self.img = cv2.imread( self.path )
 
 	def preprocess( self ):
+		self.YUVimg = cv2.cvtColor( self.img, cv2.COLOR_BGR2YUV )
 		self.bw_img = cv2.cvtColor( self.img, cv2.COLOR_BGR2GRAY )
 		self.HSVimg = cv2.cvtColor( self.img, cv2.COLOR_BGR2HSV )
 
@@ -23,8 +24,7 @@ class featureDetector():
 		return des
 
 	def brightness( self ):
-		avg = np.average( self.bw_img )
-		return avg
+		return np.average( self.YUVimg[:, :, 0] )
 
 	def saturationHist( self ):
 		shist = cv2.calcHist( [self.HSVimg], [1], None, [50], [0,256] )
@@ -107,6 +107,11 @@ class featurePooling():
 if __name__ == "__main__":
 
 	sample_path = 'data/sample/sample2.png'
-	f = featureDetector( sample_path )
-	f.preprocess()
-	print f.darkPixels()
+	f = featurePooling( [sample_path] )
+	f.getFeatures()
+	img = f.image_data[0]
+	print 'SIFThistogram', img['SIFThistogram']
+	print 'brightness', img['brightness']
+	print 'colorHist', img['colorHist']
+	print 'saturationHist', img['saturationHist']
+	print 'darkness', img['darkPixels']
