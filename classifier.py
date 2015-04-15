@@ -71,5 +71,5 @@ if __name__ == '__main__' :
 	print 'Script started at', datetime.now()
 	f = trainer( training_path, testing_path )
 	f.classify()
-	print f.testing_labels
+	print [f.class_map[cid] for cid in f.testing_labels]
 	print 'Script finished at', datetime.now()
