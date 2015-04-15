@@ -9,11 +9,11 @@ class featureDetector():
 		self.path = path
 		self.img = cv2.imread( self.path )
 
-	def preprocess ( self ):
+	def preprocess( self ):
 		self.bw_img = cv2.cvtColor( self.img, cv2.COLOR_BGR2GRAY )
 		self.HSVimg = cv2.cvtColor( self.img, cv2.COLOR_BGR2HSV )
 
-	def SIFT ( self ):
+	def SIFT( self ):
 		sift = cv2.SIFT()
 		kp, des = sift.detectAndCompute( self.bw_img, None )
 
@@ -22,22 +22,22 @@ class featureDetector():
 
 		return des
 
-	def brightness ( self ):
+	def brightness( self ):
 		avg = np.average( self.bw_img )
 		return avg
 
-	def saturationHist ( self ):
+	def saturationHist( self ):
 		shist = cv2.calcHist( [self.HSVimg], [1], None, [50], [0,256] )
 		shist = np.transpose( shist )[0]
 		return shist
 
-	def darkPixels ( self ):
+	def darkPixels( self ):
 		dhist = cv2.calcHist( [self.HSVimg], [2], None, [3], [0,256] )
 		dhist = np.transpose( dhist )[0]
 		darkness = dhist[0] / ( dhist[0] + dhist[1] + dhist[2] )
 		return darkness
 
-	def colorHist ( self ):
+	def colorHist( self ):
 		bhist = cv2.calcHist( [self.img], [0], None, [50], [0,256] )
 		ghist = cv2.calcHist( [self.img], [1], None, [50], [0,256] )
 		rhist = cv2.calcHist( [self.img], [2], None, [50], [0,256] )
