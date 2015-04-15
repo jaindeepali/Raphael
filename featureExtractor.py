@@ -26,8 +26,16 @@ class featureDetector():
 		avg = np.average( self.bw_img )
 		return avg
 
-	def texture ( self ):
-		return 0
+	def saturationHist ( self ):
+		shist = cv2.calcHist( [self.HSVimg], [1], None, [50], [0,256] )
+		shist = np.transpose( shist )[0]
+		return shist
+
+	def darkPixels ( self ):
+		dhist = cv2.calcHist( [self.HSVimg], [2], None, [3], [0,256] )
+		dhist = np.transpose( dhist )[0]
+		darkness = dhist[0] / ( dhist[0] + dhist[1] + dhist[1] )
+		return darkness
 
 	def colorHist ( self ):
 		bhist = cv2.calcHist( [self.img], [0], None, [50], [0,256] )
@@ -69,6 +77,8 @@ class featurePooling():
 			image['no_of_descriptors'] = len(des)
 			image['brightness'] = f.brightness()
 			image['colorHist'] = f.colorHist()
+			image['saturationHist'] = f.saturationHist()
+			image['darkPixels'] = f.darkPixels()
 
 			if self.descriptor_pool == None :
 				self.descriptor_pool = des
@@ -86,6 +96,8 @@ class featurePooling():
 			img['features'] = hist
 			img['features'] = np.append( img['features'], img['brightness'] )
 			img['features'] = np.append( img['features'], img['colorHist'] )
+			img['features'] = np.append( img['features'], img['saturationHist'] )
+			img['features'] = np.append( img['features'], img['darkPixels'] )
 
 			if self.features == None:
 				self.features = img['features']
@@ -94,6 +106,7 @@ class featurePooling():
 
 if __name__ == "__main__":
 
-	sample_path = 'data/sample/sample.png'
+	sample_path = 'data/sample/sample2.png'
 	f = featureDetector( sample_path )
-	print f.colorHist()
+	f.preprocess()
+	print f.darkPixels()
