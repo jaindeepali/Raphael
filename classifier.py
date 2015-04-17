@@ -2,9 +2,8 @@ import cv2
 import numpy as np
 import os
 from datetime import datetime
-from scipy.cluster.vq import *
-from featureExtractor import *
 from helper import *
+from featureExtractor import *
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import tree
 from sklearn import svm
