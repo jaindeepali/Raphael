@@ -14,9 +14,9 @@ from sklearn.lda import LDA
 from sklearn.qda import QDA
 from sklearn.preprocessing import StandardScaler
 
-class trainer():
+class classifier():
 
-	def __init__( self, training_path, testing_path ):
+	def __init__( self, training_path, testing_path, number_of_classes = 3 ):
 		self.training_path = training_path
 		self.testing_path = testing_path
 		self.training_image_list = []
@@ -24,8 +24,9 @@ class trainer():
 		self.training_labels = []
 		self.testing_labels = []
 		self.class_map = {}
+		self.n_classes = number_of_classes
 		self.classifiers = {
-			'knn': KNeighborsClassifier(3),
+			'knn': KNeighborsClassifier( 3 ),
 		    'svm_linear': SVC(kernel="linear", C=0.025),
 		    'svm': SVC(gamma=2, C=1),
 		    'tree': DecisionTreeClassifier(max_depth=5),
@@ -34,13 +35,12 @@ class trainer():
 		    'gauss': GaussianNB(),
 		    'lda': LDA(),
 		    'qda': QDA(),
-		    'ann': neuralNetwork() }
+		    'ann': neuralNetwork( self.n_classes ) }
 
 	def get_training_image_list( self ):
 		classes = os.listdir( self.training_path )
 		cid = 0
 		for c in classes:
-			cid = cid + 1
 			self.class_map[cid] = c
 			class_path = os.path.join( self.training_path, c )
 			images = os.listdir( class_path )
@@ -49,6 +49,7 @@ class trainer():
 			for i in images:
 				img_path = os.path.join( class_path, i )
 				self.training_image_list.append( img_path )
+			cid = cid + 1
 
 	def get_testing_image_list( self ):
 		images = os.listdir( self.testing_path )
@@ -68,23 +69,22 @@ class trainer():
 		self.preprocess( features )
 		features = self.scaler.transform( features );
 		self.classifiers[ classifier ].fit( features, self.training_labels )
-		self.testing_labels = self.classifiers[ classifier ].predict( features )
 
 	def classify( self, classifier ):
 		self.train( classifier )
-		# self.get_testing_image_list()
-		# f = featurePooling( self.testing_image_list, 1 )
-		# f.getFeatures( self.voc )
-		# features = f.features
-		# features = self.scaler.transform( features )
-		# self.testing_labels = self.classifiers[ classifier ].predict( features )
+		self.get_testing_image_list()
+		f = featurePooling( self.testing_image_list, 1 )
+		f.getFeatures( self.voc )
+		features = f.features
+		features = self.scaler.transform( features )
+		self.testing_labels = self.classifiers[ classifier ].predict( features )
 
 
 if __name__ == '__main__' :
 	training_path = 'data/training'
 	testing_path = 'data/testing'
 	print 'Script started at', datetime.now()
-	f = trainer( training_path, testing_path )
+	f = classifier( training_path, testing_path, 3 )
 	# f.classify( 'knn' )
 	# f.classify( 'svm_linear' )
 	# f.classify( 'svm' )
