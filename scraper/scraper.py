@@ -5,7 +5,7 @@ base_url = 'http://www.wikiart.org'
 
 def get( endpoint ):
 	response = requests.get( base_url + endpoint )
-	soup = BS(response.text)
+	soup = BS( response.text )
 	return soup
 
 def scrape():

@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from helper import *
 from featureExtractor import *
+from neuralNetwork import *
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
@@ -32,7 +33,8 @@ class trainer():
 		    'adb': AdaBoostClassifier(),
 		    'gauss': GaussianNB(),
 		    'lda': LDA(),
-		    'qda': QDA()}
+		    'qda': QDA(),
+		    'ann': neuralNetwork() }
 
 	def get_training_image_list( self ):
 		classes = os.listdir( self.training_path )
@@ -66,15 +68,16 @@ class trainer():
 		self.preprocess( features )
 		features = self.scaler.transform( features );
 		self.classifiers[ classifier ].fit( features, self.training_labels )
+		self.testing_labels = self.classifiers[ classifier ].predict( features )
 
 	def classify( self, classifier ):
 		self.train( classifier )
-		self.get_testing_image_list()
-		f = featurePooling( self.testing_image_list, 1 )
-		f.getFeatures( self.voc )
-		features = f.features
-		features = self.scaler.transform( features )
-		self.testing_labels = self.classifiers[ classifier ].predict( features )
+		# self.get_testing_image_list()
+		# f = featurePooling( self.testing_image_list, 1 )
+		# f.getFeatures( self.voc )
+		# features = f.features
+		# features = self.scaler.transform( features )
+		# self.testing_labels = self.classifiers[ classifier ].predict( features )
 
 
 if __name__ == '__main__' :
@@ -82,7 +85,7 @@ if __name__ == '__main__' :
 	testing_path = 'data/testing'
 	print 'Script started at', datetime.now()
 	f = trainer( training_path, testing_path )
-	f.classify( 'knn' )
+	# f.classify( 'knn' )
 	# f.classify( 'svm_linear' )
 	# f.classify( 'svm' )
 	# f.classify( 'tree' )
@@ -91,5 +94,7 @@ if __name__ == '__main__' :
 	# f.classify( 'gauss' )
 	# f.classify( 'lda' )
 	# f.classify( 'qda' )
-	print [f.class_map[cid] for cid in f.testing_labels]
+	f.classify( 'ann' )
+	# print [f.class_map[cid] for cid in f.testing_labels]
+	print f.testing_labels
 	print 'Script finished at', datetime.now()
