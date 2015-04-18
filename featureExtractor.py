@@ -51,8 +51,9 @@ class featureDetector():
 
 class featurePooling():
 
-	def __init__( self, image_list ):
+	def __init__( self, image_list, test = 0 ):
 		self.image_list = image_list
+		self.test = test
 		self.descriptor_pool = None
 		self.image_data = []
 		self.voc = None
@@ -62,7 +63,7 @@ class featurePooling():
 		voc, variance = kmeans(self.descriptor_pool, k, 1)
 		self.voc = voc
 
-	def getFeatures( self ):
+	def getFeatures( self, voc = None ):
 
 		# Get features of all images in self.image_list
 
@@ -82,15 +83,19 @@ class featurePooling():
 			image['saturationHist'] = f.saturationHist()
 			# image['darkPixels'] = f.darkPixels()
 
-			if self.descriptor_pool == None :
-				self.descriptor_pool = des
-			else:
-				self.descriptor_pool = np.vstack( ( self.descriptor_pool, des ) )
-
 			self.image_data.append( image )
 
+			if not self.test:
+				if self.descriptor_pool == None :
+					self.descriptor_pool = des
+				else:
+					self.descriptor_pool = np.vstack( ( self.descriptor_pool, des ) )			
+
 		k = 100
-		self.clusterSIFTDescriptors( k )
+		if voc == None:
+			self.clusterSIFTDescriptors( k )
+		else:
+			self.voc = voc
 
 		for img in self.image_data:
 			hist = createHistogram( img['descriptors'], self.voc, k )
@@ -105,6 +110,8 @@ class featurePooling():
 				self.features = img['features']
 			else:
 				self.features = np.vstack( ( self.features, img['features'] ) )
+
+		return self.voc
 
 if __name__ == "__main__":
 

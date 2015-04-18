@@ -61,7 +61,7 @@ class trainer():
 	def train( self, classifier ):
 		self.get_training_image_list()
 		f = featurePooling( self.training_image_list )
-		f.getFeatures()
+		self.voc = f.getFeatures()
 		features = f.features
 		self.preprocess( features )
 		features = self.scaler.transform( features );
@@ -70,8 +70,8 @@ class trainer():
 	def classify( self, classifier ):
 		self.train( classifier )
 		self.get_testing_image_list()
-		f = featurePooling( self.testing_image_list )
-		f.getFeatures()
+		f = featurePooling( self.testing_image_list, 1 )
+		f.getFeatures( self.voc )
 		features = f.features
 		features = self.scaler.transform( features )
 		self.testing_labels = self.classifiers[ classifier ].predict( features )
@@ -82,6 +82,14 @@ if __name__ == '__main__' :
 	testing_path = 'data/testing'
 	print 'Script started at', datetime.now()
 	f = trainer( training_path, testing_path )
-	f.classify( 'svm' )
+	f.classify( 'knn' )
+	# f.classify( 'svm_linear' )
+	# f.classify( 'svm' )
+	# f.classify( 'tree' )
+	# f.classify( 'rf' )
+	# f.classify( 'adb' )
+	# f.classify( 'gauss' )
+	# f.classify( 'lda' )
+	# f.classify( 'qda' )
 	print [f.class_map[cid] for cid in f.testing_labels]
 	print 'Script finished at', datetime.now()
