@@ -4,9 +4,13 @@ import os
 from datetime import datetime
 from helper import *
 from featureExtractor import *
-from sklearn.ensemble import RandomForestClassifier
-from sklearn import tree
-from sklearn import svm
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.lda import LDA
+from sklearn.qda import QDA
 from sklearn.preprocessing import StandardScaler
 
 class trainer():
@@ -19,6 +23,16 @@ class trainer():
 		self.training_labels = []
 		self.testing_labels = []
 		self.class_map = {}
+		self.classifiers = {
+			'knn': KNeighborsClassifier(3),
+		    'svm_linear': SVC(kernel="linear", C=0.025),
+		    'svm': SVC(gamma=2, C=1),
+		    'tree': DecisionTreeClassifier(max_depth=5),
+		    'rf': RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1),
+		    'adb': AdaBoostClassifier(),
+		    'gauss': GaussianNB(),
+		    'lda': LDA(),
+		    'qda': QDA()}
 
 	def get_training_image_list( self ):
 		classes = os.listdir( self.training_path )
@@ -44,24 +58,23 @@ class trainer():
 		self.scaler = StandardScaler()
 		self.scaler.fit( features )
 
-	def train( self ):
+	def train( self, classifier ):
 		self.get_training_image_list()
 		f = featurePooling( self.training_image_list )
 		f.getFeatures()
 		features = f.features
 		self.preprocess( features )
 		features = self.scaler.transform( features );
-		self.clf = svm.SVC()
-		self.clf.fit( features, self.training_labels )
+		self.classifiers[ classifier ].fit( features, self.training_labels )
 
-	def classify( self ):
-		self.train()
+	def classify( self, classifier ):
+		self.train( classifier )
 		self.get_testing_image_list()
 		f = featurePooling( self.testing_image_list )
 		f.getFeatures()
 		features = f.features
 		features = self.scaler.transform( features )
-		self.testing_labels = self.clf.predict( features )
+		self.testing_labels = self.classifiers[ classifier ].predict( features )
 
 
 if __name__ == '__main__' :
@@ -69,6 +82,6 @@ if __name__ == '__main__' :
 	testing_path = 'data/testing'
 	print 'Script started at', datetime.now()
 	f = trainer( training_path, testing_path )
-	f.classify()
+	f.classify( 'svm' )
 	print [f.class_map[cid] for cid in f.testing_labels]
 	print 'Script finished at', datetime.now()
