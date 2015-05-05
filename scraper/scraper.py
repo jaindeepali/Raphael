@@ -95,6 +95,14 @@ def collect( link, style, count ):
 				print 'training image', j, url
 
 def scrape():
+	training_path = os.path.join( '..', 'data', 'training' )
+	if not os.path.exists( training_path ):
+		os.mkdir( training_path )
+
+	testing_path = os.path.join( '..', 'data', 'testing' )
+	if not os.path.exists( testing_path ):
+		os.mkdir( testing_path )
+
 	style_list_page = get( '/en/paintings-by-style' )
 	print 'list of styles collected'
 	for style_element in style_list_page.select( 'div.search-item.fLeft' ):
