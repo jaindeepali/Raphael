@@ -24,7 +24,7 @@ class featureDetector():
 		return des
 
 	def brightness( self ):
-		hist = cv2.calcHist( [self.YUVimg], [2], None, [50], [0,256] )
+		hist = cv2.calcHist( [self.YUVimg], [0], None, [50], [0,256] )
 		hist = np.transpose( hist )[0]
 		return hist
 
@@ -32,12 +32,6 @@ class featureDetector():
 		shist = cv2.calcHist( [self.HSVimg], [1], None, [50], [0,256] )
 		shist = np.transpose( shist )[0]
 		return shist
-
-	def darkPixels( self ):
-		dhist = cv2.calcHist( [self.HSVimg], [2], None, [3], [0,256] )
-		dhist = np.transpose( dhist )[0]
-		darkness = dhist[0] / ( dhist[0] + dhist[1] + dhist[2] )
-		return darkness
 
 	def colorHist( self ):
 		bhist = cv2.calcHist( [self.img], [0], None, [50], [0,256] )
@@ -81,7 +75,6 @@ class featurePooling():
 			image['brightness'] = f.brightness()
 			image['colorHist'] = f.colorHist()
 			image['saturationHist'] = f.saturationHist()
-			# image['darkPixels'] = f.darkPixels()
 
 			self.image_data.append( image )
 
@@ -89,7 +82,7 @@ class featurePooling():
 				if self.descriptor_pool == None :
 					self.descriptor_pool = des
 				else:
-					self.descriptor_pool = np.vstack( ( self.descriptor_pool, des ) )			
+					self.descriptor_pool = np.vstack( ( self.descriptor_pool, des ) )
 
 		k = 100
 		if voc == None:
@@ -104,7 +97,6 @@ class featurePooling():
 			img['features'] = np.append( img['features'], img['brightness'] )
 			img['features'] = np.append( img['features'], img['colorHist'] )
 			img['features'] = np.append( img['features'], img['saturationHist'] )
-			# img['features'] = np.append( img['features'], img['darkPixels'] )
 
 			if self.features == None:
 				self.features = img['features']
@@ -123,4 +115,3 @@ if __name__ == "__main__":
 	print 'brightness', img['brightness']
 	print 'colorHist', img['colorHist']
 	print 'saturationHist', img['saturationHist']
-	# print 'darkness', img['darkPixels']
