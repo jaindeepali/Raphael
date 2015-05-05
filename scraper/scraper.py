@@ -52,7 +52,7 @@ def collect( link, style, count ):
 
 	print 'list of paintings collected for', style
 
-	if len( paintings ) - 3 < 75:
+	if len( paintings ) - 3 < 50:
 		print 'skipping', style, 'due to scraper problems'
 		return
 
@@ -101,9 +101,6 @@ def scrape():
 		link = style_element.select( 'a.an.rimage.big' )[0]['href']
 		style = style_element.select( '.r2c span.category' )[0].text.lower()
 		count = int(style_element.select( '.l2c span.category' )[0].text)
-
-		if 'photorealism' not in style:
-			continue
 
 		collect( link, style, count )
 
