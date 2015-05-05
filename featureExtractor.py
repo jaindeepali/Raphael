@@ -3,6 +3,9 @@ import numpy as np
 from scipy.cluster.vq import *
 from helper import *
 
+HISTOGRAM_BINS = 5
+KMEANS_CLUSTERS_FOR_SIFT = 10
+
 class featureDetector():
 
 	def __init__( self, path ):
@@ -24,19 +27,19 @@ class featureDetector():
 		return des
 
 	def brightness( self ):
-		hist = cv2.calcHist( [self.YUVimg], [0], None, [50], [0,256] )
+		hist = cv2.calcHist( [self.YUVimg], [0], None, [HISTOGRAM_BINS], [0,256] )
 		hist = np.transpose( hist )[0]
 		return hist
 
 	def saturationHist( self ):
-		shist = cv2.calcHist( [self.HSVimg], [1], None, [50], [0,256] )
+		shist = cv2.calcHist( [self.HSVimg], [1], None, [HISTOGRAM_BINS], [0,256] )
 		shist = np.transpose( shist )[0]
 		return shist
 
 	def colorHist( self ):
-		bhist = cv2.calcHist( [self.img], [0], None, [50], [0,256] )
-		ghist = cv2.calcHist( [self.img], [1], None, [50], [0,256] )
-		rhist = cv2.calcHist( [self.img], [2], None, [50], [0,256] )
+		bhist = cv2.calcHist( [self.img], [0], None, [HISTOGRAM_BINS], [0,256] )
+		ghist = cv2.calcHist( [self.img], [1], None, [HISTOGRAM_BINS], [0,256] )
+		rhist = cv2.calcHist( [self.img], [2], None, [HISTOGRAM_BINS], [0,256] )
 		bhist = np.transpose( bhist )[0]
 		ghist = np.transpose( ghist )[0]
 		rhist = np.transpose( rhist )[0]
@@ -84,14 +87,13 @@ class featurePooling():
 				else:
 					self.descriptor_pool = np.vstack( ( self.descriptor_pool, des ) )
 
-		k = 100
 		if voc == None:
-			self.clusterSIFTDescriptors( k )
+			self.clusterSIFTDescriptors( KMEANS_CLUSTERS_FOR_SIFT )
 		else:
 			self.voc = voc
 
 		for img in self.image_data:
-			hist = createHistogram( img['descriptors'], self.voc, k )
+			hist = createHistogram( img['descriptors'], self.voc, KMEANS_CLUSTERS_FOR_SIFT )
 			img['SIFThistogram'] = hist
 			img['features'] = hist
 			img['features'] = np.append( img['features'], img['brightness'] )
