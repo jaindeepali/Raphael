@@ -3,6 +3,7 @@ import requests
 import urllib
 import re
 import urlparse
+import numpy as np
 import os
 
 base_url = 'http://www.wikiart.org'
@@ -33,24 +34,78 @@ def iriToUri(iri):
         for parti, part in enumerate(parts)
     )
 
-def scrape():
-	art_movement_list_page = get( '/en/artists-by-art-movement' )
-	for art_movement_element in art_movement_list_page.select( 'h6.artist-grouped a' ):
-		art_movement = art_movement_element.text
-		art_movement_page = get( art_movement_element['href'] )
+def collect( link, style, count ):
+	if count - 3 < 100:
+		print 'skipping', style, 'due to low count'
+		return
 
-		i = 1
-		for artist_element in art_movement_page.select( 'p.bigtext a' ):
-			artist = artist_element.text
-			artist_page = get( artist_element['href'] )
-			for painting_element in artist_page.select( 'a.rimage img' ):
-				painting_url = painting_element['src']
-				path = os.path.join( '..', 'data', 'training', art_movement )
-				if not os.path.exists( path ): os.mkdir( path )
-				path = os.path.join( path , str( i ) + '.jpg' )
-				urllib.urlretrieve( iriToUri( _unicode( painting_url ) ), path )
-				print painting_url + ' retrieved'
-				i = i + 1
+	print 'initiate process for', style
+
+	paintings = []
+	for i in range(1, 101):
+		style_page = get( link + '/' + str( i ) )
+		paintings_in_page = style_page.select( 'a.rimage img' )
+		if len( paintings_in_page ) == 0:
+			break
+
+		paintings = paintings + paintings_in_page
+
+	print 'list of paintings collected for', style
+
+	if len( paintings ) - 3 < 75:
+		print 'skipping', style, 'due to scraper problems'
+		return
+
+	training_path = os.path.join( '..', 'data', 'training', style )
+	if not os.path.exists( training_path ):
+		os.mkdir( training_path )
+
+	testing_path = os.path.join( '..', 'data', 'testing', style )
+	if not os.path.exists( testing_path ):
+		os.mkdir( testing_path )
+
+	if len( paintings ) - 3 < 150:
+		print 'downloading paintings for', style, 'with count < 153'
+		j, k = 1, 1
+		random_access = np.random.random_integers( 0, len( paintings ) - 1, 3 )
+
+		for i, painting in enumerate( paintings ):
+			url = painting['src']
+			if i in random_access:
+				urllib.urlretrieve( iriToUri( _unicode( url ) ), os.path.join( testing_path, str( j ) + '.jpg' ) )
+				print 'testing image', j, url
+				j = j + 1
+				continue
+
+			urllib.urlretrieve( iriToUri( _unicode( url ) ), os.path.join( training_path, str( k ) + '.jpg' ) )
+			print 'training image', k, url
+			k = k + 1
+
+	else:
+		print 'downloading paintings for', style, 'with count > 153'
+		random_access = np.random.random_integers( 0, len( paintings ) - 1, 153 )
+		for i, idx in enumerate( random_access ):
+			j = i + 1
+			url = paintings[idx]['src']
+			if j > 150:
+				urllib.urlretrieve( iriToUri( _unicode( url ) ), os.path.join( testing_path, str( j - 150 ) + '.jpg' ) )
+				print 'testing image', j - 150, url
+			else:
+				urllib.urlretrieve( iriToUri( _unicode( url ) ), os.path.join( training_path, str( j ) + '.jpg' ) )
+				print 'training image', j, url
+
+def scrape():
+	style_list_page = get( '/en/paintings-by-style' )
+	print 'list of styles collected'
+	for style_element in style_list_page.select( 'div.search-item.fLeft' ):
+		link = style_element.select( 'a.an.rimage.big' )[0]['href']
+		style = style_element.select( '.r2c span.category' )[0].text.lower()
+		count = int(style_element.select( '.l2c span.category' )[0].text)
+
+		if 'photorealism' not in style:
+			continue
+
+		collect( link, style, count )
 
 if __name__ == '__main__':
 	scrape()
