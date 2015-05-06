@@ -4,7 +4,7 @@ from scipy.cluster.vq import *
 from helper import *
 
 HISTOGRAM_BINS = 5
-KMEANS_CLUSTERS_FOR_SIFT = 10
+KMEANS_CLUSTERS_FOR_SIFT = 25
 
 class featureDetector():
 
@@ -57,14 +57,16 @@ class featurePooling():
 		self.features = None
 
 	def clusterSIFTDescriptors( self, k ):
-		voc, variance = kmeans(self.descriptor_pool, k, 1)
+		voc, variance = kmeans2(self.descriptor_pool, k)
 		self.voc = voc
 
 	def getFeatures( self, voc = None ):
 
 		# Get features of all images in self.image_list
 
-		for img_path in self.image_list:
+		for i, img_path in enumerate(self.image_list):
+			if i % 1000 == 0:
+				print i
 
 			image = {}
 			image['path'] = img_path
@@ -72,6 +74,10 @@ class featurePooling():
 			f = featureDetector( img_path )
 			f.preprocess()
 			des = f.SIFT()
+
+			if des is None:
+				print 'No descriptors found for image'
+				continue
 
 			image['descriptors'] = des
 			image['no_of_descriptors'] = len(des)
@@ -87,8 +93,12 @@ class featurePooling():
 				else:
 					self.descriptor_pool = np.vstack( ( self.descriptor_pool, des ) )
 
+		print 'inital pass complete'
+
 		if voc == None:
+			print 'starting kmeans'
 			self.clusterSIFTDescriptors( KMEANS_CLUSTERS_FOR_SIFT )
+			print 'kmeans complete'
 		else:
 			self.voc = voc
 
