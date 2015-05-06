@@ -2,8 +2,9 @@ import cv2
 import numpy as np
 from scipy.cluster.vq import *
 from helper import *
+import os
 
-HISTOGRAM_BINS = 5
+HISTOGRAM_BINS = 10
 KMEANS_CLUSTERS_FOR_SIFT = 25
 
 class featureDetector():
@@ -64,9 +65,7 @@ class featurePooling():
 
 		# Get features of all images in self.image_list
 
-		for i, img_path in enumerate(self.image_list):
-			if i % 1000 == 0:
-				print i
+		for img_path in self.image_list:
 
 			image = {}
 			image['path'] = img_path
@@ -76,6 +75,7 @@ class featurePooling():
 			des = f.SIFT()
 
 			if des is None:
+				os.remove(img_path)
 				print 'No descriptors found for image'
 				continue
 

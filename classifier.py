@@ -19,6 +19,8 @@ class classifier():
 	def __init__( self, training_path, testing_path ):
 		self.training_path = training_path
 		self.testing_path = testing_path
+		self.training_features = None
+		self.testing_features = None
 		self.training_image_list = []
 		self.testing_image_list = []
 		self.training_labels = []
@@ -71,20 +73,14 @@ class classifier():
 		self.scaler.fit( features )
 
 	def train( self, classifier ):
-		f = featurePooling( self.training_image_list )
-		self.voc = f.getFeatures()
-		features = f.features
-		self.preprocess( features )
-		features = self.scaler.transform( features );
-		self.classifiers[ classifier ].fit( features, self.training_labels )
+		if self.training_features is None:
+			self.loadFeatures()
+		self.classifiers[ classifier ].fit( self.training_features, self.training_labels )
 
 	def classify( self, classifier ):
-		self.train( classifier )
-		f = featurePooling( self.testing_image_list, 1 )
-		f.getFeatures( self.voc )
-		features = f.features
-		features = self.scaler.transform( features )
-		self.predicted_testing_labels = self.classifiers[ classifier ].predict( features )
+		if self.testing_features is None:
+			self.train(classifier)
+		self.predicted_testing_labels = self.classifiers[ classifier ].predict( self.testing_features )
 
 	def loadFeatures( self ):
 		if os.path.exists( os.path.join( 'data/features/features.lock' ) ):
@@ -120,29 +116,25 @@ class classifier():
 			lock_file.write( self.voc )
 			lock_file.close()
 
+def final_classification( f, classifier_type ):
+	f.classify( classifier_type )
+	total_samples = 0
+	correct_samples = 0
+	for actual, predicted in zip(f.testing_labels, f.predicted_testing_labels):
+		if actual == predicted:
+			correct_samples += 1
+		total_samples += 1
+	print classifier_type, correct_samples, total_samples, (correct_samples * 1.0) / (total_samples * 1.0)
 
 if __name__ == '__main__' :
+	print 'Script started at', datetime.now()
 	training_path = 'data/training'
 	testing_path = 'data/testing'
-	print 'Script started at', datetime.now()
+	classifiers = ['knn', 'svm_linear', 'svm', 'tree', 'rf', 'adb', 'gauss', 'lda', 'qda', 'ann']
+	classifier_type = 'svm'
+
 	f = classifier( training_path, testing_path )
-	# f.classify( 'knn' )
-	# f.classify( 'svm_linear' )
-	# f.classify( 'svm' )
-	# f.classify( 'tree' )
-	# f.classify( 'rf' )
-	# f.classify( 'adb' )
-	# f.classify( 'gauss' )
-	# f.classify( 'lda' )
-	# f.classify( 'qda' )
-	# f.classify( 'ann' )
-	# print [f.class_map[cid] for cid in f.testing_labels]
-	# total_samples = 0
-	# correct_samples = 0
-	# for actual, predicted in zip(f.testing_labels, f.predicted_testing_labels):
-	# 	if actual == predicted:
-	# 		correct_samples += 1
-	# 	total_samples += 1
-	# print 'svm_linear', correct_samples, total_samples
 	f.loadFeatures()
+	# final_classification( f, classifier_type )
+
 	print 'Script finished at', datetime.now()
